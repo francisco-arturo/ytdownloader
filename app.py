@@ -1,9 +1,3 @@
-from flask import Flask, request, render_template, send_file
-from pytube import YouTube
-import os
-
-app = Flask(__name__)
-
 @app.route('/', methods=['GET', 'POST'])
 def download():
     if request.method == 'POST':
@@ -14,10 +8,12 @@ def download():
         
         yt = YouTube(url)
         
-        if 'video' in request.form:
+        download_type = request.form.get('download_type')
+        
+        if download_type == 'Video':
             # If 'video' key exists in form data, download video
             stream = yt.streams.get_highest_resolution()
-        elif 'audio' in request.form:
+        elif download_type == 'Audio':
             # If 'audio' key exists in form data, download audio
             stream = yt.streams.get_audio_only()
         else:
@@ -28,6 +24,3 @@ def download():
         stream.download(output_path=output_path)
         return send_file(filepath, as_attachment=True, download_name=stream.default_filename)
     return render_template('index.html')  # Render the form
-
-if __name__ == "__main__":
-    app.run(debug=True)
