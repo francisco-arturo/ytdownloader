@@ -13,7 +13,7 @@ def download_video():
         output_path = os.path.expanduser("~/Downloads")
         filepath = os.path.join(output_path, stream.default_filename)
         stream.download(output_path=output_path)
-        return send_file(filepath, as_attachment=True, attachment_filename=stream.default_filename)
+        return send_file(filepath, as_attachment=True, download_name=stream.default_filename)
     return render_template('index.html')  # Render the form
 
 if __name__ == "__main__":
