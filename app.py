@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 from pytube import YouTube
 import os
 
@@ -8,6 +8,9 @@ app = Flask(__name__)
 def download_video():
     if request.method == 'POST':
         url = request.form.get('url')  # Get the URL from the form
+        print(f"URL: {url}")  # Print out the value of 'url'
+        if url is None:  # Check if 'url' is None
+            return "Error: No URL provided. Please enter a URL."
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
         output_path = os.path.expanduser("~/Downloads")
