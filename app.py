@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, after_this_request
 from pytube import YouTube, Playlist
 import os
 import zipfile
@@ -10,6 +10,7 @@ def convert_mp4_to_mp3(mp4_path):
     audio = AudioFileClip(mp4_path)
     mp3_path = mp4_path.replace(".mp4", ".mp3")
     audio.write_audiofile(mp3_path)
+    os.remove(mp4_path)  # delete the original mp4 file
     return mp3_path
 
 def zip_playlists(output_path, playlist_title):
@@ -68,9 +69,30 @@ def download_video():
             stream.download(output_path=output_path)
             if download_type == 'Audio':
                 filepath = convert_mp4_to_mp3(filepath)
+
+            @after_this_request
+            def delete_file(response):
+                try:
+                    os.remove(filepath)
+                    print(f"Deleted file: {filepath}")
+                except Exception as error:
+                    print(f"Error deleting file: {filepath}. Error: {error}")
+                return response
+
             return send_file(filepath, as_attachment=True, download_name=os.path.basename(filepath))
+
         elif download_type == 'Playlist':
             zip_filepath = download_playlist(url)
+
+            @after_this_request
+            def delete_file(response):
+                try:
+                    os.remove(zip_filepath)
+                    print(f"Deleted file: {zip_filepath}")
+                except Exception as error:
+                    print(f"Error deleting file: {zip_filepath}. Error: {error}")
+                return response
+
             return send_file(zip_filepath, as_attachment=True, download_name=f'{os.path.basename(zip_filepath)}.zip')
 
         else:
